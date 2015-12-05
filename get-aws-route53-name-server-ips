@@ -1,0 +1,62 @@
+#!/bin/bash
+#
+# get-aws-route53-name-server-ips
+#
+# Copyright 2015, Alexander Jackson <alexander.jackson@jackson-it.de>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Uncomment to run in verbose mode
+#set -x
+
+# Vars
+TMPFILE=$(mktemp)
+
+# Intro
+cat <<EOF
+
+ Get AWS Route 53 name server IP's and configure them for domains registered with Antagus
+
+ 1. Go to https://console.aws.amazon.com/route53/home?region=XXXX#hosted-zones
+ 2. Select domain
+ 3. Copy name server list
+ 4. Paste name server list next. Finish with new line. Close with CTRL-D to proceed:
+
+EOF
+
+# Collect AWS name server list
+DNSLIST="$(</dev/stdin)"
+
+# Save name server list to temporary file
+echo "${DNSLIST}" > ${TMPFILE}
+
+# Clear screen
+clear
+
+# Get IPv4 and IPv6 for name servers
+cat  ${TMPFILE} | while read line ; do echo IPv4 Entries: ; getent ahostsv4 ${line} | grep STREAM ; echo IPv6 Entries: ; getent ahostsv6 ${line} | grep STREAM ; echo ; done | awk '{ print $1 " " $3 }'
+
+# Delete temporary file
+rm  ${TMPFILE}
+
+# Outro
+cat <<EOF
+
+ Next:
+
+ 1. Go to https://XXXX.antagus.de/create_ns and add each NS from above
+ 2. Go to https://XXXX.antagus.de/edit_domain, select domain and change NS accordingly and save
+ 3. Done
+
+EOF
