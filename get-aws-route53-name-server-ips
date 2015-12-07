@@ -20,43 +20,77 @@
 # Uncomment to run in verbose mode
 #set -x
 
+
 # Vars
-TMPFILE=$(mktemp)
+TMPFILE1=$(mktemp)
+TMPFILE2=$(mktemp)
+
+
+# Clear screen for usablity reasons
+clear
+
 
 # Intro
 cat <<EOF
 
- Get AWS Route 53 name server IP's and configure them for domains registered with Antagus
 
- 1. Go to https://console.aws.amazon.com/route53/home?region=XXXX#hosted-zones
- 2. Select domain
- 3. Copy name server list
- 4. Paste name server list next. Finish with new line. Close with CTRL-D to proceed:
+Get AWS Route 53 nameserver IP's and configure them for domains registered with Antagus
+
+1. Go to https://console.aws.amazon.com/route53/home?region=XXXX#hosted-zones
+
+2. Select domain
+
+3. Copy nameserver list
+
+4. Paste nameserver list next. (Finish with new line and continue with CTRL-D)
+
 
 EOF
 
-# Collect AWS name server list
-DNSLIST="$(</dev/stdin)"
 
-# Save name server list to temporary file
-echo "${DNSLIST}" > ${TMPFILE}
+# Collect AWS nameserver list
+NSLIST="$(</dev/stdin)"
 
-# Clear screen
+
+# Save nameserver list to temporary file
+echo "${NSLIST}" > ${TMPFILE1}
+
+
+# Remove ending dot if present
+sed -i 's/.$//g' ${TMPFILE1}
+
+
+# Add header to ${TMPFILE2}
+echo "Nameserver IPv4 IPv6" > ${TMPFILE2}
+echo "---------- ---- ----" >> ${TMPFILE2}
+
+
+# Clear screen for usablity reasons
 clear
 
-# Get IPv4 and IPv6 for name servers
-cat  ${TMPFILE} | while read line ; do echo IPv4 Entries: ; getent ahostsv4 ${line} | grep STREAM ; echo IPv6 Entries: ; getent ahostsv6 ${line} | grep STREAM ; echo ; done | awk '{ print $1 " " $3 }'
-
-# Delete temporary file
-rm  ${TMPFILE}
 
 # Outro
 cat <<EOF
 
- Next:
 
- 1. Go to https://XXXX.antagus.de/create_ns and add each NS from above
- 2. Go to https://XXXX.antagus.de/edit_domain, select domain and change NS accordingly and save
- 3. Done
+5. Next, go to https://XXXX.antagus.de/create_ns and add these nameservers accordingly:
+
+$(cat ${TMPFILE1} | while read line ; do IPV4=$(getent ahostsv4 ${line} | grep STREAM | awk '{ print $1 }') ; IPV6=$(getent ahostsv6 ${line} | grep STREAM
+| awk '{ print $1 }') ; echo ${line} ${IPV4} ${IPV6} ; done >> ${TMPFILE2} ; column -t ${TMPFILE2})
+
+
+
+6. Then visit https://XXXX.antagus.de/edit_domain and change the nameservers for your domain to:
+
+$(cat ${TMPFILE1})
+
+
+
+7. Done!
+
 
 EOF
+
+
+# Delete temporary files
+rm ${TMPFILE1} ${TMPFILE2}
