@@ -75,8 +75,7 @@ cat <<EOF
 
 5. Next, go to https://XXXX.antagus.de/create_ns and add these nameservers accordingly:
 
-$(cat ${TMPFILE1} | while read line ; do IPV4=$(getent ahostsv4 ${line} | grep STREAM | awk '{ print $1 }') ; IPV6=$(getent ahostsv6 ${line} | grep STREAM
-| awk '{ print $1 }') ; echo ${line} ${IPV4} ${IPV6} ; done >> ${TMPFILE2} ; column -t ${TMPFILE2})
+$(cat ${TMPFILE1} | while read line ; do IPV4=$(getent ahostsv4 ${line} | grep STREAM | awk '{ print $1 }') ; IPV6=$(getent ahostsv6 ${line} | grep STREAM | awk '{ print $1 }') ; echo ${line} ${IPV4} ${IPV6} ; done >> ${TMPFILE2} ; column -t ${TMPFILE2})
 
 
 
